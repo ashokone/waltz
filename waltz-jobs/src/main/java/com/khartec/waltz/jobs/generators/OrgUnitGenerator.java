@@ -47,7 +47,6 @@ public class OrgUnitGenerator implements SampleDataGenerator {
     public Map<String, Integer> create(ApplicationContext ctx) {
 
         DSLContext dsl = getDsl(ctx);
-        log("File Location: %s", getClass().getResource("/org-units.csv").getFile());
         Supplier<List<String>> lineSupplier = Unchecked.supplier(() -> readLines(getClass().getResourceAsStream("/org-units.csv")));
 
 

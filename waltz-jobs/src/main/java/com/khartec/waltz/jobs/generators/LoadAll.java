@@ -67,6 +67,7 @@ public class LoadAll {
         put( "ChangeSet",  new ChangeSetGenerator());
         put( "Licence",  new LicenceGenerator());
         put( "ChangeUnit",  new ChangeUnitGenerator());
+        put( "AppLoader",  new com.khartec.waltz.jobs.generators.AppLoader());
     }};
 
 

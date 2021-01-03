@@ -103,4 +103,8 @@ public class OrganisationalUnitService {
         return dao.getByAppId(id);
     }
 
+    public OrganisationalUnit getByName(String name) {
+        return dao.getByName(name);
+    }
+
 }

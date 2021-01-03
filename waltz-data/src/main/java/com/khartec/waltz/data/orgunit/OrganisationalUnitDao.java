@@ -212,6 +212,12 @@ public class OrganisationalUnitDao implements FindEntityReferencesByIdSelector {
                 .fetchOne(TO_DOMAIN_MAPPER);
     }
 
+    public OrganisationalUnit getByName(String name) {
+        return dsl.select(ORGANISATIONAL_UNIT.fields())
+                .from(ORGANISATIONAL_UNIT)
+                .where(ORGANISATIONAL_UNIT.NAME.eq(name))
+                .fetchOne(TO_DOMAIN_MAPPER);
+    }
 
     @Override
     public String toString() {
@@ -219,5 +225,6 @@ public class OrganisationalUnitDao implements FindEntityReferencesByIdSelector {
                 "dsl=" + dsl +
                 '}';
     }
+
 
 }
