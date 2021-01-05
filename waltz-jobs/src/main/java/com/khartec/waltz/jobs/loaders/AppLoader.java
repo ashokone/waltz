@@ -49,7 +49,7 @@ import static com.khartec.waltz.schema.tables.OrganisationalUnit.ORGANISATIONAL_
 
 public class AppLoader implements SampleDataGenerator {
 
-
+    public static final String CSV_REGEX = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
     private static final Random rnd = RandomUtilities.getRandom();
     private static Long longVal(String value) {
         return StringUtilities.parseLong(value, null);
@@ -60,7 +60,7 @@ public class AppLoader implements SampleDataGenerator {
     private void LoadAppColumns() {
 
 
-        log("File not found : %s", getClass().getResource("/app-columns.txt").getFile());
+        log("File location : %s", getClass().getResource("/app-columns.txt").getFile());
         List<String> columns = Unchecked.supplier(() -> readLines(getClass().getResourceAsStream("/app-columns.txt"))).get();
         for (int i = 0; i < columns.size(); i++) {
             appColumns.put( columns.get(i), i);
@@ -72,7 +72,7 @@ public class AppLoader implements SampleDataGenerator {
 
         try {
             LoadAppColumns();
-
+            appColumns.entrySet().stream().forEach(c -> log("%d : %s, ", c.getValue(), c.getKey()));
         DSLContext dsl = getDsl(ctx);
         ApplicationService applicationDao = ctx.getBean(ApplicationService.class);
         log("File Location: %s", getClass().getResource("/org-apps.csv").getFile());
@@ -84,8 +84,7 @@ public class AppLoader implements SampleDataGenerator {
                 .get()
                 .stream()
                 .skip(1)
-                .map(line -> line.split(","))
-                .filter(cells -> cells.length > 2)
+                .map(line -> line.split(CSV_REGEX, -1))
                 .map(cells -> {
                     OrganisationalUnit organisationalUnit = ouDao.getByName(cells[appColumns.get("orgUnit")]);
 
@@ -101,10 +100,12 @@ public class AppLoader implements SampleDataGenerator {
                             ? ApplicationKind.valueOf(cells[appColumns.get("applicationKind")])
                             : ApplicationKind.IN_HOUSE;
 
+
+
                     AppRegistrationRequest appRegistrationRequest = ImmutableAppRegistrationRequest.builder()
                             .name(cells[appColumns.get("name")])
                             .assetCode(cells[appColumns.get("assetCode")])
-                            .description(cells[appColumns.get("description")])
+                            .description(cells[appColumns.get("description")].replace("\"",""))
                             .applicationKind(applicationKind)
                             .lifecyclePhase(phase)
                             .overallRating(appColumns.get("overallRating")!=null?RagRating.valueOf(cells[appColumns.get("overallRating")]): RagRating.X)
@@ -123,7 +124,9 @@ public class AppLoader implements SampleDataGenerator {
 
         return MapUtilities.newHashMap("created", registrationRequests.size());
         }
-        finally {
+        catch(Exception e) {
+            log("Exception: %s", e.toString());
+            e.printStackTrace();
             return MapUtilities.newHashMap("Skipped", 0);
         }
     }
