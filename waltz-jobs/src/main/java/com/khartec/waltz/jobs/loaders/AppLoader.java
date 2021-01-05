@@ -34,17 +34,12 @@ import org.jooq.DSLContext;
 import org.jooq.lambda.Unchecked;
 import org.springframework.context.ApplicationContext;
 
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.khartec.waltz.common.IOUtilities.readLines;
-import static com.khartec.waltz.common.RandomUtilities.randomPick;
-import static com.khartec.waltz.schema.tables.OrganisationalUnit.ORGANISATIONAL_UNIT;
 
 
 public class AppLoader implements SampleDataGenerator {
@@ -86,6 +81,7 @@ public class AppLoader implements SampleDataGenerator {
                 .skip(1)
                 .map(line -> line.split(CSV_REGEX, -1))
                 .map(cells -> {
+                    log("Loading input row: %s", Arrays.toString(cells));
                     OrganisationalUnit organisationalUnit = ouDao.getByName(cells[appColumns.get("orgUnit")]);
 
                     LifecyclePhase phase = appColumns.get("lifecyclePhase")!=null
