@@ -26,15 +26,14 @@ import com.khartec.waltz.model.EntityKind;
 import com.khartec.waltz.model.EntityReference;
 import com.khartec.waltz.model.IdSelectionOptions;
 import com.khartec.waltz.model.ImmutableEntityReference;
-import com.khartec.waltz.model.application.AppRegistrationRequest;
-import com.khartec.waltz.model.application.AppRegistrationResponse;
-import com.khartec.waltz.model.application.Application;
-import com.khartec.waltz.model.application.AssetCodeRelationshipKind;
+import com.khartec.waltz.model.application.*;
 import com.khartec.waltz.model.entity_search.EntitySearchOptions;
 import com.khartec.waltz.model.tally.Tally;
 import com.khartec.waltz.service.tag.TagService;
 import org.jooq.Record1;
 import org.jooq.Select;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +54,7 @@ import static java.util.Collections.emptyMap;
 @Service
 public class ApplicationService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ApplicationDao.class);
 
     private final ApplicationDao applicationDao;
     private final TagService tagService;
@@ -84,11 +84,14 @@ public class ApplicationService {
         return applicationDao.getById(id);
     }
 
-
     public List<Application> findAll() {
         return applicationDao.findAll();
     }
 
+
+    public List<Application> findByName(String name) {
+        return applicationDao.findByName(name);
+    }
 
     public List<Tally<Long>> countByOrganisationalUnit() {
         return applicationDao.countByOrganisationalUnit();
@@ -136,6 +139,45 @@ public class ApplicationService {
         return response;
     }
 
+    public void registerOrUpdateApp(AppRegistrationRequest request, String username) {
+        checkNotEmpty(request.name(), "Cannot register app with no name");
+        List<Application> applicationList = applicationDao.findByName(request.name());
+
+        if( applicationList.size() > 1 ) {
+            LOG.info("Error registerOrUpdateApp: No. of application returned from findByName - %d" + applicationList.size());
+        }
+        else {
+            if( applicationList.size()==1) {
+                Application application = applicationList.get(0);
+
+
+                if( update(ImmutableApplication.builder()
+                        .id(application.id())
+                        .name(application.name())
+                        .description(request.description().get())
+                        .assetCode(request.assetCode().get())
+                        .parentAssetCode(request.parentAssetCode())
+                        .isRemoved(application.isRemoved())
+                        .organisationalUnitId(request.organisationalUnitId())
+                        .applicationKind(request.applicationKind())
+                        .lifecyclePhase(request.lifecyclePhase())
+                        .overallRating(request.overallRating())
+                        .businessCriticality(request.businessCriticality())
+                        .entityLifecycleStatus(application.entityLifecycleStatus())
+                        .plannedRetirementDate(application.plannedRetirementDate())
+                        .actualRetirementDate(application.actualRetirementDate())
+                        .commissionDate(application.commissionDate())
+                        .provenance(application.provenance())
+                        .build()) != 1 ) {
+                    LOG.info("Failed to update Application : %s", request.name());
+                }
+            }
+            else {
+                registerApp(request, "admin");
+            }
+        }
+
+    }
 
     public Integer update(Application application) {
         return applicationDao.update(application);
@@ -190,4 +232,3 @@ public class ApplicationService {
     }
 
 }
-

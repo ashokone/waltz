@@ -95,7 +95,6 @@ public class ApplicationDao {
                 .fetchOne(TO_DOMAIN_MAPPER);
     }
 
-
     public List<Application> findAll() {
         return dsl.select()
                 .from(APPLICATION)
@@ -103,11 +102,18 @@ public class ApplicationDao {
                 .fetch(TO_DOMAIN_MAPPER);
     }
 
-
     public List<Application> findByIds(Collection<Long> ids) {
         return dsl.select()
                 .from(APPLICATION)
                 .where(APPLICATION.ID.in(ids))
+                .fetch(TO_DOMAIN_MAPPER);
+
+    }
+
+    public List<Application> findByName(String name) {
+        return dsl.select()
+                .from(APPLICATION)
+                .where(APPLICATION.NAME.eq(name))
                 .fetch(TO_DOMAIN_MAPPER);
 
     }
@@ -205,7 +211,6 @@ public class ApplicationDao {
         }
     }
 
-
     public int update(Application application) {
 
         checkNotNull(application, "application must not be null");
@@ -227,6 +232,7 @@ public class ApplicationDao {
         record.setIsRemoved(application.isRemoved());
 
         Condition condition = APPLICATION.ID.eq(application.id().get());
+        record.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
         return dsl.executeUpdate(record, condition);
     }

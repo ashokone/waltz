@@ -16,11 +16,12 @@
  *
  */
 
-package com.khartec.waltz.jobs.generators;
+package com.khartec.waltz.jobs.loaders;
 
 import com.khartec.waltz.common.MapUtilities;
 import com.khartec.waltz.common.RandomUtilities;
 import com.khartec.waltz.common.StringUtilities;
+import com.khartec.waltz.jobs.generators.SampleDataGenerator;
 import com.khartec.waltz.model.Criticality;
 import com.khartec.waltz.model.application.AppRegistrationRequest;
 import com.khartec.waltz.model.application.ApplicationKind;
@@ -32,10 +33,10 @@ import com.khartec.waltz.service.application.ApplicationService;
 import com.khartec.waltz.service.orgunit.OrganisationalUnitService;
 import org.jooq.DSLContext;
 import org.jooq.lambda.Unchecked;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.util.*;
-import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,8 @@ public class AppLoader implements SampleDataGenerator {
     }
     private static Map<String, Integer> appColumns = new HashMap<String, Integer>();
 
+    @Autowired
+    ApplicationService applicationService;
 
     private void LoadAppColumns() {
 
@@ -114,9 +117,8 @@ public class AppLoader implements SampleDataGenerator {
                 .collect(Collectors.toList());
 
 
-        log("Inserting new Apps");
-        registrationRequests.forEach(a -> applicationDao.registerApp(a, "admin"));
-
+        log("Loading Apps");
+        registrationRequests.forEach(a -> applicationDao.registerOrUpdateApp(a, "admin"));
 
         return MapUtilities.newHashMap("created", registrationRequests.size());
         }
