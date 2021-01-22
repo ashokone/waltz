@@ -71,56 +71,56 @@ public class AppLoader implements SampleDataGenerator {
         try {
             LoadAppColumns();
             appColumns.entrySet().stream().forEach(c -> log("%d : %s, ", c.getValue(), c.getKey()));
-        DSLContext dsl = getDsl(ctx);
-        ApplicationService applicationDao = ctx.getBean(ApplicationService.class);
-        log("File Location: %s", getClass().getResource("/org-apps.csv").getFile());
-        OrganisationalUnitService ouDao = ctx.getBean(OrganisationalUnitService.class);
-        Supplier<List<String>> lineSupplier = Unchecked.supplier(() -> readLines(getClass().getResourceAsStream("/org-apps.csv")));
+            DSLContext dsl = getDsl(ctx);
+            ApplicationService applicationDao = ctx.getBean(ApplicationService.class);
+            log("File Location: %s", getClass().getResource("/org-apps.csv").getFile());
+            OrganisationalUnitService ouDao = ctx.getBean(OrganisationalUnitService.class);
+            Supplier<List<String>> lineSupplier = Unchecked.supplier(() -> readLines(getClass().getResourceAsStream("/org-apps.csv")));
 
 
-        List<AppRegistrationRequest> registrationRequests = lineSupplier
-                .get()
-                .stream()
-                .skip(1)
-                .map(line -> line.split(CSV_REGEX, -1))
-                .map(cells -> {
-                    log("Loading input row: %s", Arrays.toString(cells));
-                    OrganisationalUnit organisationalUnit = ouDao.getByName(cells[appColumns.get("orgUnit")]);
+            List<AppRegistrationRequest> registrationRequests = lineSupplier
+                    .get()
+                    .stream()
+                    .skip(1)
+                    .map(line -> line.split(CSV_REGEX, -1))
+                    .map(cells -> {
+                        log("Loading input row: %s", Arrays.toString(cells));
+                        OrganisationalUnit organisationalUnit = ouDao.getByName(cells[appColumns.get("orgUnit")]);
 
-                    LifecyclePhase phase = appColumns.get("lifecyclePhase")!=null
-                            ? LifecyclePhase.valueOf(cells[appColumns.get("lifecyclePhase")])
-                            : LifecyclePhase.PRODUCTION;
+                        LifecyclePhase phase = appColumns.get("lifecyclePhase")!=null
+                                ? LifecyclePhase.valueOf(cells[appColumns.get("lifecyclePhase")])
+                                : LifecyclePhase.PRODUCTION;
 
-                    Criticality businessCriticality = appColumns.get("businessCriticality")!=null
-                            ? Criticality.valueOf(cells[appColumns.get("businessCriticality")])
-                            : Criticality.NONE;
+                        Criticality businessCriticality = appColumns.get("businessCriticality")!=null
+                                ? Criticality.valueOf(cells[appColumns.get("businessCriticality")])
+                                : Criticality.NONE;
 
-                    ApplicationKind applicationKind = appColumns.get("applicationKind")!=null
-                            ? ApplicationKind.valueOf(cells[appColumns.get("applicationKind")])
-                            : ApplicationKind.IN_HOUSE;
-
-
-
-                    AppRegistrationRequest appRegistrationRequest = ImmutableAppRegistrationRequest.builder()
-                            .name(cells[appColumns.get("name")])
-                            .assetCode(cells[appColumns.get("assetCode")])
-                            .description(cells[appColumns.get("description")].replace("\"",""))
-                            .applicationKind(applicationKind)
-                            .lifecyclePhase(phase)
-                            .overallRating(appColumns.get("overallRating")!=null?RagRating.valueOf(cells[appColumns.get("overallRating")]): RagRating.X)
-                            .organisationalUnitId(organisationalUnit.id().get())
-                            .businessCriticality(businessCriticality)
-                            .build();
-
-                    return appRegistrationRequest;
-                })
-                .collect(Collectors.toList());
+                        ApplicationKind applicationKind = appColumns.get("applicationKind")!=null
+                                ? ApplicationKind.valueOf(cells[appColumns.get("applicationKind")])
+                                : ApplicationKind.IN_HOUSE;
 
 
-        log("Loading Apps");
-        registrationRequests.forEach(a -> applicationDao.registerOrUpdateApp(a, "admin"));
 
-        return MapUtilities.newHashMap("created", registrationRequests.size());
+                        AppRegistrationRequest appRegistrationRequest = ImmutableAppRegistrationRequest.builder()
+                                .name(cells[appColumns.get("name")])
+                                .assetCode(cells[appColumns.get("assetCode")])
+                                .description(cells[appColumns.get("description")].replace("\"",""))
+                                .applicationKind(applicationKind)
+                                .lifecyclePhase(phase)
+                                .overallRating(appColumns.get("overallRating")!=null?RagRating.valueOf(cells[appColumns.get("overallRating")]): RagRating.X)
+                                .organisationalUnitId(organisationalUnit.id().get())
+                                .businessCriticality(businessCriticality)
+                                .build();
+
+                        return appRegistrationRequest;
+                    })
+                    .collect(Collectors.toList());
+
+
+            log("Loading Apps");
+            registrationRequests.forEach(a -> applicationDao.registerOrUpdateApp(a, "admin"));
+
+           return MapUtilities.newHashMap("created", registrationRequests.size());
         }
         catch(Exception e) {
             log("Exception: %s", e.toString());

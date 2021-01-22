@@ -35,6 +35,9 @@ public class BatchLoader {
     private static final HashMap<String, SampleDataGenerator> dataLoaders = new HashMap<String, SampleDataGenerator>() {{
         put("OrgUnit", new OrgUnitGenerator());
         put( "AppLoader",  new AppLoader());
+        put( "DataType", new DataTypeLoader());
+        put( "LogicalFlow", new LogicalFlowLoader());
+        put( "LogicalFlowDecoration", new LogicalFlowDecorationLoader());
     }};
 
 
